@@ -122,7 +122,6 @@ def main(page: ft.Page):
         **estilo_base
     )
 
-    # Botão de alternância entre Tabela e Digitação Livre
     usando_manual = False
     
     txt_botao_modo = ft.Text("Digitar Manual", size=11, weight=ft.FontWeight.BOLD, color=cor_destaque)
@@ -149,8 +148,7 @@ def main(page: ft.Page):
     btn_alternar_modo = ft.Container(
         content=txt_botao_modo,
         padding=8,
-        on_click=alternar_modo_servico,
-        alignment=ft.alignment.center
+        on_click=alternar_modo_servico
     )
 
     def ao_mudar_servico(e):
@@ -363,7 +361,7 @@ def main(page: ft.Page):
 
             ft.Row([
                 ft.Text("ITENS DO ORÇAMENTO", size=11, weight=ft.FontWeight.BOLD, color=cor_texto_principal),
-                btn_alternar_modo # Botão para alternar entre tabela e digitação livre
+                btn_alternar_modo
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
 
             ft.Row([dropdown_servico, input_servico_manual]),
@@ -375,7 +373,7 @@ def main(page: ft.Page):
             ft.Divider(height=20, color=ft.Colors.GREY_200),
 
             ft.Row([
-                ft.Text("TOTAL PARCIAL", size=11, weight=ft.FontWeight.BOLD, color=ft.colors.GREY_500),
+                ft.Text("TOTAL PARCIAL", size=11, weight=ft.FontWeight.BOLD, color=ft.Colors.GREY_500),
                 txt_valor_total
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             ft.Divider(height=15, color=ft.Colors.TRANSPARENT),

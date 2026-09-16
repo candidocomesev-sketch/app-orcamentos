@@ -91,9 +91,10 @@ def main(page: ft.Page):
         border=ft.Border(left=ft.BorderSide(4, cor_destaque))
     )
 
+    # --- TEXTO DE AVISO (Substituindo o SnackBar) ---
+    txt_avisos = ft.Text("", size=13, weight=ft.FontWeight.BOLD)
+
     # --- 3. FORMULÁRIO ---
-    
-    # Estilo geral (bordas e preenchimento)
     estilo_base = {
         "border_color": ft.Colors.GREY_300,
         "border_radius": 8,
@@ -102,13 +103,11 @@ def main(page: ft.Page):
         "focused_border_color": cor_destaque
     }
 
-    # Campos de texto têm cursor
     input_cliente = ft.TextField(label="Nome do cliente", prefix_icon=ft.Icons.PERSON_OUTLINE, cursor_color=cor_destaque, **estilo_base)
     input_endereco = ft.TextField(label="Endereço completo", prefix_icon=ft.Icons.LOCATION_ON_OUTLINED, cursor_color=cor_destaque, **estilo_base)
 
     opcoes_padrao = list(tabela_precos.keys()) + ["Outro (Digitar manualmente)..."]
 
-    # Dropdown não tem cursor, usa apenas o estilo base
     dropdown_servico = ft.Dropdown(
         label="Selecione o Serviço/Material",
         options=[ft.dropdown.Option(texto) for texto in opcoes_padrao],
@@ -121,6 +120,7 @@ def main(page: ft.Page):
     input_valor_un = ft.TextField(label="Valor Un. (R$)", width=120, keyboard_type=ft.KeyboardType.NUMBER, cursor_color=cor_destaque, **estilo_base)
 
     def ao_mudar_servico(e):
+        txt_avisos.value = ""
         servico_selecionado = dropdown_servico.value
         
         if servico_selecionado == "Outro (Digitar manualmente)...":
@@ -155,8 +155,9 @@ def main(page: ft.Page):
         descricao_final = input_servico_manual.value if input_servico_manual.visible else dropdown_servico.value
 
         if not descricao_final:
-            snack = ft.SnackBar(ft.Text("Selecione ou digite um serviço!"), bgcolor=ft.Colors.RED_600)
-            page.open(snack)
+            txt_avisos.value = "Selecione ou digite um serviço!"
+            txt_avisos.color = ft.Colors.RED_600
+            page.update()
             return
 
         try:
@@ -173,10 +174,10 @@ def main(page: ft.Page):
 
             container_linha = ft.Container(padding=8, bgcolor="#F8FAFC", border_radius=8)
 
-            btn_remover = ft.IconButton(
-                icon=ft.Icons.DELETE_OUTLINE,
-                icon_color=ft.Colors.RED_400,
-                tooltip="Remover Item",
+            # Botão de remover feito com Container (à prova de falhas)
+            btn_remover = ft.Container(
+                content=ft.Icon(ft.Icons.DELETE_OUTLINE, color=ft.Colors.RED_400, size=20),
+                padding=5,
                 on_click=lambda _: remover_servico(item_dict, container_linha)
             )
 
@@ -197,17 +198,20 @@ def main(page: ft.Page):
             input_servico_manual.value = ""
             input_qtd.value = "1"
             input_valor_un.value = ""
+            txt_avisos.value = ""
             page.update()
         except ValueError:
-            snack = ft.SnackBar(ft.Text("Verifique a quantidade e o valor!"), bgcolor=ft.Colors.RED_600)
-            page.open(snack)
+            txt_avisos.value = "Verifique a quantidade e o valor inseridos!"
+            txt_avisos.color = ft.Colors.RED_600
+            page.update()
 
-    btn_adicionar = ft.ElevatedButton(
-        "Adicionar",
-        on_click=adicionar_servico_click,
+    # Botão Adicionar feito com Container (à prova de falhas)
+    btn_adicionar = ft.Container(
+        content=ft.Row([ft.Text("Adicionar", color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD)], alignment=ft.MainAxisAlignment.CENTER),
         bgcolor=cor_texto_principal,
-        color=ft.Colors.WHITE,
-        style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8), padding=12)
+        padding=12,
+        border_radius=8,
+        on_click=adicionar_servico_click
     )
 
     # --- 4. GERAÇÃO DO PDF ---
@@ -216,8 +220,9 @@ def main(page: ft.Page):
 
     def gerar_pdf_click(e):
         if not servicos_adicionados:
-            snack = ft.SnackBar(ft.Text("Adicione pelo menos um serviço!"), bgcolor=ft.Colors.RED_600)
-            page.open(snack)
+            txt_avisos.value = "Adicione pelo menos um serviço antes de gerar o PDF!"
+            txt_avisos.color = ft.Colors.RED_600
+            page.update()
             return
 
         pdf = FPDF()
@@ -279,16 +284,21 @@ def main(page: ft.Page):
         caminho_salvar = os.path.join(os.path.expanduser("~"), nome_arquivo) if os.name != 'nt' else nome_arquivo
         pdf.output(caminho_salvar)
 
-        snack = ft.SnackBar(ft.Text(f"PDF gerado com sucesso!"), bgcolor=ft.Colors.GREEN_700)
-        page.open(snack)
+        txt_avisos.value = f"PDF salvo com sucesso! Procure por {nome_arquivo} nos seus arquivos."
+        txt_avisos.color = ft.Colors.GREEN_700
+        page.update()
 
-    btn_gerar_pdf = ft.ElevatedButton(
-        "Finalizar e Gerar PDF",
-        icon=ft.Icons.PICTURE_AS_PDF,
-        on_click=gerar_pdf_click,
+    # Botão de Gerar PDF feito com Container (à prova de falhas)
+    btn_gerar_pdf = ft.Container(
+        content=ft.Row(
+            [ft.Icon(ft.Icons.PICTURE_AS_PDF, color=ft.Colors.WHITE), ft.Text("Finalizar e Gerar PDF", color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD)],
+            alignment=ft.MainAxisAlignment.CENTER,
+            spacing=10
+        ),
         bgcolor=cor_destaque,
-        color=ft.Colors.WHITE,
-        style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8), padding=15)
+        padding=15,
+        border_radius=8,
+        on_click=gerar_pdf_click
     )
 
     card_formulario = ft.Container(
@@ -302,6 +312,8 @@ def main(page: ft.Page):
                 ], spacing=2, alignment=ft.MainAxisAlignment.END)
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             ft.Divider(height=20, color=ft.Colors.GREY_200),
+
+            txt_avisos,
 
             ft.Text("DADOS DO CLIENTE", size=11, weight=ft.FontWeight.BOLD, color=cor_texto_principal),
             input_cliente, input_endereco,

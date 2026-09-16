@@ -3,6 +3,9 @@ import datetime
 import os
 from fpdf import FPDF
 
+# --- LINK DIRETO DA SUA LOGO NO GITHUB ---
+URL_LOGO = "https://raw.githubusercontent.com/candidocomesev-sketch/app-orcamentos/f4561c92c877856be4be12d79a0245c89a75e65d/Logo.png"
+
 def main(page: ft.Page):
     servicos_adicionados = []
     valor_total_orcamento = 0.0
@@ -43,14 +46,10 @@ def main(page: ft.Page):
         "Teste e entrega": 100.00
     }
 
-    # --- 1. CABEÇALHO E LOGO ---
-    # Caminho robusto para encontrar a imagem no Android
-    diretorio_app = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
-    caminho_logo_pdf = os.path.join(diretorio_app, "logo.png")
-    tem_logo = os.path.exists(caminho_logo_pdf)
+    tem_logo = URL_LOGO.startswith("http")
 
     icone_ou_logo = (
-        ft.Image(src="logo.png", width=45, height=45, fit=ft.ImageFit.CONTAIN)
+        ft.Image(src=URL_LOGO, width=45, height=45, fit=ft.ImageFit.CONTAIN)
         if tem_logo
         else ft.Icon(ft.Icons.BOLT, color=cor_destaque, size=24)
     )
@@ -227,12 +226,11 @@ def main(page: ft.Page):
         pdf = FPDF()
         pdf.add_page()
 
-        # Adiciona a logo ao PDF
         if tem_logo:
             try:
-                pdf.image(caminho_logo_pdf, x=10, y=8, w=30)
+                pdf.image(URL_LOGO, x=10, y=8, w=30)
             except Exception:
-                pass # Caso a imagem falhe por algum motivo, continua o PDF
+                pass 
 
         pdf.set_font("helvetica", "B", 16)
         pdf.set_text_color(30, 41, 59)
@@ -284,7 +282,6 @@ def main(page: ft.Page):
 
         nome_arquivo = f"Orcamento_{nome_cliente.replace(' ', '_')}.pdf"
         
-        # Correção crucial para Android: Forçando o salvamento na pasta de Downloads!
         if page.platform == ft.PagePlatform.ANDROID:
             caminho_salvar = f"/storage/emulated/0/Download/{nome_arquivo}"
         else:
@@ -294,8 +291,8 @@ def main(page: ft.Page):
             pdf.output(caminho_salvar)
             txt_avisos.value = f"PDF salvo na pasta Downloads como {nome_arquivo}!"
             txt_avisos.color = ft.Colors.GREEN_700
-        except Exception as e:
-            txt_avisos.value = f"Erro de permissão! Tente dar permissão de arquivos ao aplicativo."
+        except Exception:
+            txt_avisos.value = f"Erro de permissão ao salvar PDF."
             txt_avisos.color = ft.Colors.RED_600
             
         page.update()
@@ -363,4 +360,4 @@ def main(page: ft.Page):
         card_formulario
     )
 
-ft.run(main, assets_dir=".")
+ft.run(main)

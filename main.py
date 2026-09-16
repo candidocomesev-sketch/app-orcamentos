@@ -326,4 +326,4 @@ def main(page: ft.Page):
     )
 
 # COMANDO ATUALIZADO NOVO FLET 1.0.0
-ft.run(target=main)
+ft.run(main)

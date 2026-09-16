@@ -77,7 +77,6 @@ def main(page: ft.Page):
         ft.Text("sem complicar.", size=32, weight=ft.FontWeight.W_900, color=cor_destaque, height=1.1),
     ], spacing=2)
 
-    # CORREÇÃO AQUI: span -> spans e passando uma lista [ ]
     dica_rapida = ft.Container(
         content=ft.Text(
             spans=[
@@ -93,30 +92,33 @@ def main(page: ft.Page):
     )
 
     # --- 3. FORMULÁRIO ---
-    estilo_campo = {
+    
+    # Estilo geral (bordas e preenchimento)
+    estilo_base = {
         "border_color": ft.Colors.GREY_300,
         "border_radius": 8,
         "content_padding": 12,
         "text_size": 14,
-        "cursor_color": cor_destaque,
         "focused_border_color": cor_destaque
     }
 
-    input_cliente = ft.TextField(label="Nome do cliente", prefix_icon=ft.Icons.PERSON_OUTLINE, **estilo_campo)
-    input_endereco = ft.TextField(label="Endereço completo", prefix_icon=ft.Icons.LOCATION_ON_OUTLINED, **estilo_campo)
+    # Campos de texto têm cursor
+    input_cliente = ft.TextField(label="Nome do cliente", prefix_icon=ft.Icons.PERSON_OUTLINE, cursor_color=cor_destaque, **estilo_base)
+    input_endereco = ft.TextField(label="Endereço completo", prefix_icon=ft.Icons.LOCATION_ON_OUTLINED, cursor_color=cor_destaque, **estilo_base)
 
     opcoes_padrao = list(tabela_precos.keys()) + ["Outro (Digitar manualmente)..."]
 
+    # Dropdown não tem cursor, usa apenas o estilo base
     dropdown_servico = ft.Dropdown(
         label="Selecione o Serviço/Material",
         options=[ft.dropdown.Option(texto) for texto in opcoes_padrao],
         expand=True,
-        **estilo_campo
+        **estilo_base
     )
-    input_servico_manual = ft.TextField(label="Qual o novo serviço?", visible=False, expand=True, **estilo_campo)
     
-    input_qtd = ft.TextField(label="Qtd", width=75, value="1", keyboard_type=ft.KeyboardType.NUMBER, **estilo_campo)
-    input_valor_un = ft.TextField(label="Valor Un. (R$)", width=120, keyboard_type=ft.KeyboardType.NUMBER, **estilo_campo)
+    input_servico_manual = ft.TextField(label="Qual o novo serviço?", visible=False, expand=True, cursor_color=cor_destaque, **estilo_base)
+    input_qtd = ft.TextField(label="Qtd", width=75, value="1", keyboard_type=ft.KeyboardType.NUMBER, cursor_color=cor_destaque, **estilo_base)
+    input_valor_un = ft.TextField(label="Valor Un. (R$)", width=120, keyboard_type=ft.KeyboardType.NUMBER, cursor_color=cor_destaque, **estilo_base)
 
     def ao_mudar_servico(e):
         servico_selecionado = dropdown_servico.value

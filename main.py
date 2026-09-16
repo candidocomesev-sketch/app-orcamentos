@@ -4,13 +4,12 @@ import os
 from fpdf import FPDF
 
 def main(page: ft.Page):
-    # Estado da aplicação individual por sessão
     servicos_adicionados = []
     valor_total_orcamento = 0.0
 
     page.title = "Candido Serviços Elétricos"
     page.bgcolor = "#F6F5F0"
-    page.padding = ft.padding.symmetric(horizontal=15, vertical=20)
+    page.padding = 15
     page.scroll = ft.ScrollMode.AUTO
 
     cor_texto_principal = "#1E293B"
@@ -19,8 +18,32 @@ def main(page: ft.Page):
 
     hoje = datetime.datetime.now().strftime("%d/%m/%Y")
 
+    # --- TABELA DE PREÇOS (Sua "Planilha" Interna) ---
+    tabela_precos = {
+        "Passagem de cabo de alimentação": 150.00,
+        "Troca do chuveiro": 80.00,
+        "Instalação do chuveiro": 120.00,
+        "Instalação de ventilador": 180.00,
+        "Troca de Ventilador": 150.00,
+        "Instalação de tomada": 45.00,
+        "Instalação de interruptores": 45.00,
+        "Montagem do quadro de distribuição": 350.00,
+        "Troca do quadro de distribuição": 400.00,
+        "Troca de lâmpada": 20.00,
+        "Troca de luminária": 60.00,
+        "Instalação do lustre": 150.00,
+        "Limpeza do lustre": 100.00,
+        "Instalação de luminária": 70.00,
+        "Instalação de balizadores": 55.00,
+        "Instalação de luminárias jardim": 85.00,
+        "Instalação de interruptores automatizados": 120.00,
+        "Instalação de câmera": 150.00,
+        "Configurações de automação": 200.00,
+        "Configurações de CFTV": 250.00,
+        "Teste e entrega": 100.00
+    }
+
     # --- 1. CABEÇALHO ---
-    # O código vai procurar este arquivo. Se você fizer o upload dele, a logo aparece!
     caminho_logo = "logo.png"
     tem_logo = os.path.exists(caminho_logo)
 
@@ -57,16 +80,16 @@ def main(page: ft.Page):
     dica_rapida = ft.Container(
         content=ft.Text(
             span=ft.TextSpan(
-                "Dica rápida: ",
+                "Dica: ",
                 ft.TextStyle(weight=ft.FontWeight.BOLD, color=cor_texto_principal),
-                [ft.TextSpan("descreva o item como o cliente vai ver no orçamento.", ft.TextStyle(color=ft.colors.GREY_700))]
+                [ft.TextSpan("selecione o serviço para puxar o preço. Você pode editar o valor livremente.", ft.TextStyle(color=ft.colors.GREY_700))]
             ),
             size=12
         ),
         bgcolor="#EAE8E1",
         padding=12,
         border_radius=5,
-        border=ft.border.only(left=ft.BorderSide(4, cor_destaque))
+        border=ft.Border(left=ft.BorderSide(4, cor_destaque))
     )
 
     # --- 3. FORMULÁRIO ---
@@ -82,17 +105,7 @@ def main(page: ft.Page):
     input_cliente = ft.TextField(label="Nome do cliente", prefix_icon=ft.icons.PERSON_OUTLINE, **estilo_campo)
     input_endereco = ft.TextField(label="Endereço completo", prefix_icon=ft.icons.LOCATION_ON_OUTLINED, **estilo_campo)
 
-    opcoes_padrao = [
-        "Passagem de cabo de alimentação", "Troca do chuveiro", "Instalação do chuveiro",
-        "Instalação de ventilador", "Troca de Ventilador", "Instalação de tomada",
-        "Instalação de interruptores", "Montagem do quadro de distribuição",
-        "Troca do quadro de distribuição", "Troca de lâmpada", "Troca de luminária",
-        "Instalação do lustre", "Limpeza do lustre", "Instalação de luminária",
-        "Instalação de balizadores", "Instalação de luminárias jardim",
-        "Instalação de interruptores automatizados", "Instalação de câmera",
-        "Configurações de automação", "Configurações de CFTV", "Teste e entrega",
-        "Outro (Digitar manualmente)..."
-    ]
+    opcoes_padrao = list(tabela_precos.keys()) + ["Outro (Digitar manualmente)..."]
 
     dropdown_servico = ft.Dropdown(
         label="Selecione o Serviço/Material",
@@ -101,17 +114,26 @@ def main(page: ft.Page):
         **estilo_campo
     )
     input_servico_manual = ft.TextField(label="Qual o novo serviço?", visible=False, expand=True, **estilo_campo)
+    
+    input_qtd = ft.TextField(label="Qtd", width=75, value="1", keyboard_type=ft.KeyboardType.NUMBER, **estilo_campo)
+    input_valor_un = ft.TextField(label="Valor Un. (R$)", width=120, keyboard_type=ft.KeyboardType.NUMBER, **estilo_campo)
 
     def ao_mudar_servico(e):
-        input_servico_manual.visible = (dropdown_servico.value == "Outro (Digitar manualmente)...")
-        if not input_servico_manual.visible:
+        servico_selecionado = dropdown_servico.value
+        
+        if servico_selecionado == "Outro (Digitar manualmente)...":
+            input_servico_manual.visible = True
+            input_valor_un.value = ""
+        else:
+            input_servico_manual.visible = False
             input_servico_manual.value = ""
+            if servico_selecionado in tabela_precos:
+                preco = tabela_precos[servico_selecionado]
+                input_valor_un.value = f"{preco:.2f}".replace(".", ",")
+                
         page.update()
 
     dropdown_servico.on_change = ao_mudar_servico
-
-    input_qtd = ft.TextField(label="Qtd", width=75, value="1", keyboard_type=ft.KeyboardType.NUMBER, **estilo_campo)
-    input_valor_un = ft.TextField(label="Valor Un. (R$)", width=120, keyboard_type=ft.KeyboardType.NUMBER, **estilo_campo)
 
     txt_valor_total = ft.Text("R$ 0,00", size=24, weight=ft.FontWeight.W_800, color=cor_texto_principal)
     lista_servicos = ft.ListView(height=160, spacing=5)
@@ -132,9 +154,7 @@ def main(page: ft.Page):
 
         if not descricao_final:
             snack = ft.SnackBar(ft.Text("Selecione ou digite um serviço!"), bgcolor=ft.colors.RED_600)
-            page.overlay.append(snack)
-            snack.open = True
-            page.update()
+            page.open(snack)
             return
 
         try:
@@ -178,9 +198,7 @@ def main(page: ft.Page):
             page.update()
         except ValueError:
             snack = ft.SnackBar(ft.Text("Verifique a quantidade e o valor!"), bgcolor=ft.colors.RED_600)
-            page.overlay.append(snack)
-            snack.open = True
-            page.update()
+            page.open(snack)
 
     btn_adicionar = ft.ElevatedButton(
         "Adicionar",
@@ -197,9 +215,7 @@ def main(page: ft.Page):
     def gerar_pdf_click(e):
         if not servicos_adicionados:
             snack = ft.SnackBar(ft.Text("Adicione pelo menos um serviço!"), bgcolor=ft.colors.RED_600)
-            page.overlay.append(snack)
-            snack.open = True
-            page.update()
+            page.open(snack)
             return
 
         pdf = FPDF()
@@ -258,14 +274,11 @@ def main(page: ft.Page):
 
         nome_arquivo = f"Orcamento_{nome_cliente.replace(' ', '_')}.pdf"
         
-        # No Android, salva na pasta de documentos da app
         caminho_salvar = os.path.join(os.path.expanduser("~"), nome_arquivo) if os.name != 'nt' else nome_arquivo
         pdf.output(caminho_salvar)
 
         snack = ft.SnackBar(ft.Text(f"PDF gerado com sucesso!"), bgcolor=ft.colors.GREEN_700)
-        page.overlay.append(snack)
-        snack.open = True
-        page.update()
+        page.open(snack)
 
     btn_gerar_pdf = ft.ElevatedButton(
         "Finalizar e Gerar PDF",
@@ -325,5 +338,4 @@ def main(page: ft.Page):
         card_formulario
     )
 
-# COMANDO ATUALIZADO NOVO FLET 1.0.0
 ft.run(main)

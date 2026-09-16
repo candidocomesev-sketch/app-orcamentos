@@ -48,8 +48,9 @@ def main(page: ft.Page):
 
     tem_logo = URL_LOGO.startswith("http")
 
+    # CORREÇÃO AQUI: fit="contain" em formato de texto direto
     icone_ou_logo = (
-        ft.Image(src=URL_LOGO, width=45, height=45, fit=ft.ImageFit.CONTAIN)
+        ft.Image(src=URL_LOGO, width=45, height=45, fit="contain")
         if tem_logo
         else ft.Icon(ft.Icons.BOLT, color=cor_destaque, size=24)
     )

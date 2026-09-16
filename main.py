@@ -18,7 +18,7 @@ def main(page: ft.Page):
 
     hoje = datetime.datetime.now().strftime("%d/%m/%Y")
 
-    # --- TABELA DE PREÇOS (Sua "Planilha" Interna) ---
+    # --- TABELA DE PREÇOS ---
     tabela_precos = {
         "Passagem de cabo de alimentação": 150.00,
         "Troca do chuveiro": 80.00,
@@ -43,12 +43,14 @@ def main(page: ft.Page):
         "Teste e entrega": 100.00
     }
 
-    # --- 1. CABEÇALHO ---
-    caminho_logo = "logo.png"
-    tem_logo = os.path.exists(caminho_logo)
+    # --- 1. CABEÇALHO E LOGO ---
+    # Caminho robusto para encontrar a imagem no Android
+    diretorio_app = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
+    caminho_logo_pdf = os.path.join(diretorio_app, "logo.png")
+    tem_logo = os.path.exists(caminho_logo_pdf)
 
     icone_ou_logo = (
-        ft.Image(src=caminho_logo, width=45, height=45, fit=ft.ImageFit.CONTAIN)
+        ft.Image(src="logo.png", width=45, height=45, fit=ft.ImageFit.CONTAIN)
         if tem_logo
         else ft.Icon(ft.Icons.BOLT, color=cor_destaque, size=24)
     )
@@ -91,7 +93,6 @@ def main(page: ft.Page):
         border=ft.Border(left=ft.BorderSide(4, cor_destaque))
     )
 
-    # --- TEXTO DE AVISO (Substituindo o SnackBar) ---
     txt_avisos = ft.Text("", size=13, weight=ft.FontWeight.BOLD)
 
     # --- 3. FORMULÁRIO ---
@@ -226,8 +227,12 @@ def main(page: ft.Page):
         pdf = FPDF()
         pdf.add_page()
 
+        # Adiciona a logo ao PDF
         if tem_logo:
-            pdf.image(caminho_logo, x=10, y=8, w=30)
+            try:
+                pdf.image(caminho_logo_pdf, x=10, y=8, w=30)
+            except Exception:
+                pass # Caso a imagem falhe por algum motivo, continua o PDF
 
         pdf.set_font("helvetica", "B", 16)
         pdf.set_text_color(30, 41, 59)
@@ -279,11 +284,20 @@ def main(page: ft.Page):
 
         nome_arquivo = f"Orcamento_{nome_cliente.replace(' ', '_')}.pdf"
         
-        caminho_salvar = os.path.join(os.path.expanduser("~"), nome_arquivo) if os.name != 'nt' else nome_arquivo
-        pdf.output(caminho_salvar)
-
-        txt_avisos.value = f"PDF salvo com sucesso! Procure por {nome_arquivo} nos seus arquivos."
-        txt_avisos.color = ft.Colors.GREEN_700
+        # Correção crucial para Android: Forçando o salvamento na pasta de Downloads!
+        if page.platform == ft.PagePlatform.ANDROID:
+            caminho_salvar = f"/storage/emulated/0/Download/{nome_arquivo}"
+        else:
+            caminho_salvar = os.path.join(os.path.expanduser("~"), "Downloads", nome_arquivo) if os.name != 'nt' else nome_arquivo
+        
+        try:
+            pdf.output(caminho_salvar)
+            txt_avisos.value = f"PDF salvo na pasta Downloads como {nome_arquivo}!"
+            txt_avisos.color = ft.Colors.GREEN_700
+        except Exception as e:
+            txt_avisos.value = f"Erro de permissão! Tente dar permissão de arquivos ao aplicativo."
+            txt_avisos.color = ft.Colors.RED_600
+            
         page.update()
 
     btn_gerar_pdf = ft.Container(
@@ -349,4 +363,4 @@ def main(page: ft.Page):
         card_formulario
     )
 
-ft.run(main)
+ft.run(main, assets_dir=".")

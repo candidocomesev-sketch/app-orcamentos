@@ -48,7 +48,6 @@ def main(page: ft.Page):
 
     tem_logo = URL_LOGO.startswith("http")
 
-    # CORREÇÃO AQUI: fit="contain" em formato de texto direto
     icone_ou_logo = (
         ft.Image(src=URL_LOGO, width=45, height=45, fit="contain")
         if tem_logo
@@ -83,7 +82,7 @@ def main(page: ft.Page):
         content=ft.Text(
             spans=[
                 ft.TextSpan("Dica: ", ft.TextStyle(weight=ft.FontWeight.BOLD, color=cor_texto_principal)),
-                ft.TextSpan("selecione o serviço para puxar o preço. Você pode editar o valor livremente.", ft.TextStyle(color=ft.Colors.GREY_700))
+                ft.TextSpan("Se o serviço não estiver na lista, escolha 'Outro (Digitar manualmente)' para digitar.", ft.TextStyle(color=ft.Colors.GREY_700))
             ],
             size=12
         ),
@@ -107,7 +106,8 @@ def main(page: ft.Page):
     input_cliente = ft.TextField(label="Nome do cliente", prefix_icon=ft.Icons.PERSON_OUTLINE, cursor_color=cor_destaque, **estilo_base)
     input_endereco = ft.TextField(label="Endereço completo", prefix_icon=ft.Icons.LOCATION_ON_OUTLINED, cursor_color=cor_destaque, **estilo_base)
 
-    opcoes_padrao = list(tabela_precos.keys()) + ["Outro (Digitar manualmente)..."]
+    # Adicionamos explicitamente a opção clara no final da lista
+    opcoes_padrao = list(tabela_precos.keys()) + ["Outro (Digitar manualmente)"]
 
     dropdown_servico = ft.Dropdown(
         label="Selecione o Serviço/Material",
@@ -116,7 +116,14 @@ def main(page: ft.Page):
         **estilo_base
     )
     
-    input_servico_manual = ft.TextField(label="Qual o novo serviço?", visible=False, expand=True, cursor_color=cor_destaque, **estilo_base)
+    # Campo de texto manual visível por padrão ou controlado pelo dropdown
+    input_servico_manual = ft.TextField(
+        label="Digite o nome do novo serviço ou material", 
+        visible=False, 
+        cursor_color=cor_destaque, 
+        **estilo_base
+    )
+    
     input_qtd = ft.TextField(label="Qtd", width=75, value="1", keyboard_type=ft.KeyboardType.NUMBER, cursor_color=cor_destaque, **estilo_base)
     input_valor_un = ft.TextField(label="Valor Un. (R$)", width=120, keyboard_type=ft.KeyboardType.NUMBER, cursor_color=cor_destaque, **estilo_base)
 
@@ -124,8 +131,9 @@ def main(page: ft.Page):
         txt_avisos.value = ""
         servico_selecionado = dropdown_servico.value
         
-        if servico_selecionado == "Outro (Digitar manualmente)...":
+        if servico_selecionado == "Outro (Digitar manualmente)":
             input_servico_manual.visible = True
+            input_servico_manual.value = ""
             input_valor_un.value = ""
         else:
             input_servico_manual.visible = False
@@ -153,10 +161,14 @@ def main(page: ft.Page):
         page.update()
 
     def adicionar_servico_click(e):
-        descricao_final = input_servico_manual.value if input_servico_manual.visible else dropdown_servico.value
+        # Se a opção escolhida for a manual, pega o que foi digitado no campo de texto
+        if dropdown_servico.value == "Outro (Digitar manualmente)":
+            descricao_final = input_servico_manual.value
+        else:
+            descricao_final = dropdown_servico.value
 
         if not descricao_final:
-            txt_avisos.value = "Selecione ou digite um serviço!"
+            txt_avisos.value = "Selecione um serviço ou digite o nome dele!"
             txt_avisos.color = ft.Colors.RED_600
             page.update()
             return
@@ -201,7 +213,7 @@ def main(page: ft.Page):
             txt_avisos.value = ""
             page.update()
         except ValueError:
-            txt_avisos.value = "Verifique a quantidade e o valor inseridos!"
+            txt_avisos.value = "Verifique se a quantidade e o valor são válidos!"
             txt_avisos.color = ft.Colors.RED_600
             page.update()
 
@@ -330,7 +342,7 @@ def main(page: ft.Page):
 
             ft.Text("ITENS DO ORÇAMENTO", size=11, weight=ft.FontWeight.BOLD, color=cor_texto_principal),
             ft.Row([dropdown_servico]),
-            ft.Row([input_servico_manual]),
+            input_servico_manual, # Campo de digitação manual posicionado logo abaixo do dropdown
             ft.Row([input_qtd, input_valor_un, btn_adicionar], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
 
             ft.Container(height=5),

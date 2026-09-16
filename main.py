@@ -77,13 +77,13 @@ def main(page: ft.Page):
         ft.Text("sem complicar.", size=32, weight=ft.FontWeight.W_900, color=cor_destaque, height=1.1),
     ], spacing=2)
 
+    # CORREÇÃO AQUI: span -> spans e passando uma lista [ ]
     dica_rapida = ft.Container(
         content=ft.Text(
-            span=ft.TextSpan(
-                "Dica: ",
-                ft.TextStyle(weight=ft.FontWeight.BOLD, color=cor_texto_principal),
-                [ft.TextSpan("selecione o serviço para puxar o preço. Você pode editar o valor livremente.", ft.TextStyle(color=ft.Colors.GREY_700))]
-            ),
+            spans=[
+                ft.TextSpan("Dica: ", ft.TextStyle(weight=ft.FontWeight.BOLD, color=cor_texto_principal)),
+                ft.TextSpan("selecione o serviço para puxar o preço. Você pode editar o valor livremente.", ft.TextStyle(color=ft.Colors.GREY_700))
+            ],
             size=12
         ),
         bgcolor="#EAE8E1",

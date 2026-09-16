@@ -20,6 +20,7 @@ def main(page: ft.Page):
     hoje = datetime.datetime.now().strftime("%d/%m/%Y")
 
     # --- 1. CABEÇALHO ---
+    # O código vai procurar este arquivo. Se você fizer o upload dele, a logo aparece!
     caminho_logo = "logo.png"
     tem_logo = os.path.exists(caminho_logo)
 
@@ -324,4 +325,5 @@ def main(page: ft.Page):
         card_formulario
     )
 
-ft.app(target=main)
+# COMANDO ATUALIZADO NOVO FLET 1.0.0
+ft.run(target=main)

@@ -14,7 +14,7 @@ def main(page: ft.Page):
 
     cor_texto_principal = "#1E293B"
     cor_destaque = "#2563EB"
-    cor_card = ft.colors.WHITE
+    cor_card = ft.Colors.WHITE
 
     hoje = datetime.datetime.now().strftime("%d/%m/%Y")
 
@@ -50,19 +50,19 @@ def main(page: ft.Page):
     icone_ou_logo = (
         ft.Image(src=caminho_logo, width=45, height=45, fit=ft.ImageFit.CONTAIN)
         if tem_logo
-        else ft.Icon(ft.icons.BOLT, color=cor_destaque, size=24)
+        else ft.Icon(ft.Icons.BOLT, color=cor_destaque, size=24)
     )
 
     cabecalho = ft.Row([
         ft.Container(
             content=icone_ou_logo,
-            bgcolor=ft.colors.TRANSPARENT if tem_logo else cor_texto_principal,
+            bgcolor=ft.Colors.TRANSPARENT if tem_logo else cor_texto_principal,
             padding=5 if tem_logo else 10,
             border_radius=10
         ),
         ft.Column([
             ft.Text("Cândido", size=18, weight=ft.FontWeight.W_800, color=cor_texto_principal),
-            ft.Text("SERVIÇOS ELÉTRICOS", size=10, color=ft.colors.GREY_600, weight=ft.FontWeight.W_500),
+            ft.Text("SERVIÇOS ELÉTRICOS", size=10, color=ft.Colors.GREY_600, weight=ft.FontWeight.W_500),
         ], spacing=0)
     ], alignment=ft.MainAxisAlignment.START)
 
@@ -82,7 +82,7 @@ def main(page: ft.Page):
             span=ft.TextSpan(
                 "Dica: ",
                 ft.TextStyle(weight=ft.FontWeight.BOLD, color=cor_texto_principal),
-                [ft.TextSpan("selecione o serviço para puxar o preço. Você pode editar o valor livremente.", ft.TextStyle(color=ft.colors.GREY_700))]
+                [ft.TextSpan("selecione o serviço para puxar o preço. Você pode editar o valor livremente.", ft.TextStyle(color=ft.Colors.GREY_700))]
             ),
             size=12
         ),
@@ -94,7 +94,7 @@ def main(page: ft.Page):
 
     # --- 3. FORMULÁRIO ---
     estilo_campo = {
-        "border_color": ft.colors.GREY_300,
+        "border_color": ft.Colors.GREY_300,
         "border_radius": 8,
         "content_padding": 12,
         "text_size": 14,
@@ -102,8 +102,8 @@ def main(page: ft.Page):
         "focused_border_color": cor_destaque
     }
 
-    input_cliente = ft.TextField(label="Nome do cliente", prefix_icon=ft.icons.PERSON_OUTLINE, **estilo_campo)
-    input_endereco = ft.TextField(label="Endereço completo", prefix_icon=ft.icons.LOCATION_ON_OUTLINED, **estilo_campo)
+    input_cliente = ft.TextField(label="Nome do cliente", prefix_icon=ft.Icons.PERSON_OUTLINE, **estilo_campo)
+    input_endereco = ft.TextField(label="Endereço completo", prefix_icon=ft.Icons.LOCATION_ON_OUTLINED, **estilo_campo)
 
     opcoes_padrao = list(tabela_precos.keys()) + ["Outro (Digitar manualmente)..."]
 
@@ -153,7 +153,7 @@ def main(page: ft.Page):
         descricao_final = input_servico_manual.value if input_servico_manual.visible else dropdown_servico.value
 
         if not descricao_final:
-            snack = ft.SnackBar(ft.Text("Selecione ou digite um serviço!"), bgcolor=ft.colors.RED_600)
+            snack = ft.SnackBar(ft.Text("Selecione ou digite um serviço!"), bgcolor=ft.Colors.RED_600)
             page.open(snack)
             return
 
@@ -172,15 +172,15 @@ def main(page: ft.Page):
             container_linha = ft.Container(padding=8, bgcolor="#F8FAFC", border_radius=8)
 
             btn_remover = ft.IconButton(
-                icon=ft.icons.DELETE_OUTLINE,
-                icon_color=ft.colors.RED_400,
+                icon=ft.Icons.DELETE_OUTLINE,
+                icon_color=ft.Colors.RED_400,
                 tooltip="Remover Item",
                 on_click=lambda _: remover_servico(item_dict, container_linha)
             )
 
             container_linha.content = ft.Row([
                 ft.Text(descricao_final, expand=True, size=12, color=cor_texto_principal),
-                ft.Text(f"{qtd}x", size=12, color=ft.colors.GREY_600),
+                ft.Text(f"{qtd}x", size=12, color=ft.Colors.GREY_600),
                 ft.Text(f"R$ {total_item:.2f}", size=13, weight=ft.FontWeight.BOLD, color=cor_destaque),
                 btn_remover
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
@@ -197,14 +197,14 @@ def main(page: ft.Page):
             input_valor_un.value = ""
             page.update()
         except ValueError:
-            snack = ft.SnackBar(ft.Text("Verifique a quantidade e o valor!"), bgcolor=ft.colors.RED_600)
+            snack = ft.SnackBar(ft.Text("Verifique a quantidade e o valor!"), bgcolor=ft.Colors.RED_600)
             page.open(snack)
 
     btn_adicionar = ft.ElevatedButton(
         "Adicionar",
         on_click=adicionar_servico_click,
         bgcolor=cor_texto_principal,
-        color=ft.colors.WHITE,
+        color=ft.Colors.WHITE,
         style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8), padding=12)
     )
 
@@ -214,7 +214,7 @@ def main(page: ft.Page):
 
     def gerar_pdf_click(e):
         if not servicos_adicionados:
-            snack = ft.SnackBar(ft.Text("Adicione pelo menos um serviço!"), bgcolor=ft.colors.RED_600)
+            snack = ft.SnackBar(ft.Text("Adicione pelo menos um serviço!"), bgcolor=ft.Colors.RED_600)
             page.open(snack)
             return
 
@@ -277,15 +277,15 @@ def main(page: ft.Page):
         caminho_salvar = os.path.join(os.path.expanduser("~"), nome_arquivo) if os.name != 'nt' else nome_arquivo
         pdf.output(caminho_salvar)
 
-        snack = ft.SnackBar(ft.Text(f"PDF gerado com sucesso!"), bgcolor=ft.colors.GREEN_700)
+        snack = ft.SnackBar(ft.Text(f"PDF gerado com sucesso!"), bgcolor=ft.Colors.GREEN_700)
         page.open(snack)
 
     btn_gerar_pdf = ft.ElevatedButton(
         "Finalizar e Gerar PDF",
-        icon=ft.icons.PICTURE_AS_PDF,
+        icon=ft.Icons.PICTURE_AS_PDF,
         on_click=gerar_pdf_click,
         bgcolor=cor_destaque,
-        color=ft.colors.WHITE,
+        color=ft.Colors.WHITE,
         style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8), padding=15)
     )
 
@@ -296,14 +296,14 @@ def main(page: ft.Page):
                     ft.Text("ORÇAMENTO", size=18, weight=ft.FontWeight.W_700, color=cor_texto_principal)
                 ], spacing=2),
                 ft.Column([
-                    ft.Text(f"Data: {hoje}", size=11, color=ft.colors.GREY_600)
+                    ft.Text(f"Data: {hoje}", size=11, color=ft.Colors.GREY_600)
                 ], spacing=2, alignment=ft.MainAxisAlignment.END)
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-            ft.Divider(height=20, color=ft.colors.GREY_200),
+            ft.Divider(height=20, color=ft.Colors.GREY_200),
 
             ft.Text("DADOS DO CLIENTE", size=11, weight=ft.FontWeight.BOLD, color=cor_texto_principal),
             input_cliente, input_endereco,
-            ft.Divider(height=20, color=ft.colors.GREY_200),
+            ft.Divider(height=20, color=ft.Colors.GREY_200),
 
             ft.Text("ITENS DO ORÇAMENTO", size=11, weight=ft.FontWeight.BOLD, color=cor_texto_principal),
             ft.Row([dropdown_servico]),
@@ -312,20 +312,20 @@ def main(page: ft.Page):
 
             ft.Container(height=5),
             lista_servicos,
-            ft.Divider(height=20, color=ft.colors.GREY_200),
+            ft.Divider(height=20, color=ft.Colors.GREY_200),
 
             ft.Row([
-                ft.Text("TOTAL PARCIAL", size=11, weight=ft.FontWeight.BOLD, color=ft.colors.GREY_500),
+                ft.Text("TOTAL PARCIAL", size=11, weight=ft.FontWeight.BOLD, color=ft.Colors.GREY_500),
                 txt_valor_total
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-            ft.Divider(height=15, color=ft.colors.TRANSPARENT),
+            ft.Divider(height=15, color=ft.Colors.TRANSPARENT),
             ft.Row([btn_gerar_pdf], alignment=ft.MainAxisAlignment.CENTER)
 
         ], spacing=8),
         bgcolor=cor_card,
         padding=18,
         border_radius=16,
-        shadow=ft.BoxShadow(spread_radius=0, blur_radius=10, color=ft.colors.with_opacity(0.05, ft.colors.BLACK))
+        shadow=ft.BoxShadow(spread_radius=0, blur_radius=10, color=ft.Colors.BLACK12)
     )
 
     page.add(

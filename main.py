@@ -81,8 +81,8 @@ def main(page: ft.Page):
     dica_rapida = ft.Container(
         content=ft.Text(
             spans=[
-                ft.TextSpan("Dica: ", ft.TextStyle(weight=ft.FontWeight.BOLD, color=cor_texto_principal)),
-                ft.TextSpan("Se o serviço não estiver na lista, escolha 'Outro (Digitar manualmente)' para digitar.", ft.TextStyle(color=ft.Colors.GREY_700))
+                ft.TextSpan("Modo de uso: ", ft.TextStyle(weight=ft.FontWeight.BOLD, color=cor_texto_principal)),
+                ft.TextSpan("Escolha na tabela para puxar o preço ou use o botão para digitar um serviço livre.", ft.TextStyle(color=ft.Colors.GREY_700))
             ],
             size=12
         ),
@@ -106,45 +106,65 @@ def main(page: ft.Page):
     input_cliente = ft.TextField(label="Nome do cliente", prefix_icon=ft.Icons.PERSON_OUTLINE, cursor_color=cor_destaque, **estilo_base)
     input_endereco = ft.TextField(label="Endereço completo", prefix_icon=ft.Icons.LOCATION_ON_OUTLINED, cursor_color=cor_destaque, **estilo_base)
 
-    # Adicionamos explicitamente a opção clara no final da lista
-    opcoes_padrao = list(tabela_precos.keys()) + ["Outro (Digitar manualmente)"]
-
+    # Componentes de Serviço (Tabela vs Manual)
     dropdown_servico = ft.Dropdown(
-        label="Selecione o Serviço/Material",
-        options=[ft.dropdown.Option(texto) for texto in opcoes_padrao],
+        label="Selecione o Serviço da Tabela",
+        options=[ft.dropdown.Option(texto) for texto in tabela_precos.keys()],
         expand=True,
         **estilo_base
     )
     
-    # Campo de texto manual visível por padrão ou controlado pelo dropdown
     input_servico_manual = ft.TextField(
-        label="Digite o nome do novo serviço ou material", 
+        label="Digite o nome do serviço personalizado", 
         visible=False, 
+        expand=True,
         cursor_color=cor_destaque, 
         **estilo_base
     )
+
+    # Botão de alternância entre Tabela e Digitação Livre
+    usando_manual = False
     
-    input_qtd = ft.TextField(label="Qtd", width=75, value="1", keyboard_type=ft.KeyboardType.NUMBER, cursor_color=cor_destaque, **estilo_base)
-    input_valor_un = ft.TextField(label="Valor Un. (R$)", width=120, keyboard_type=ft.KeyboardType.NUMBER, cursor_color=cor_destaque, **estilo_base)
+    txt_botao_modo = ft.Text("Digitar Manual", size=11, weight=ft.FontWeight.BOLD, color=cor_destaque)
+
+    def alternar_modo_servico(e):
+        nonlocal usando_manual
+        usando_manual = not usando_manual
+        
+        if usando_manual:
+            dropdown_servico.visible = False
+            input_servico_manual.visible = True
+            input_servico_manual.value = ""
+            input_valor_un.value = ""
+            txt_botao_modo.value = "Usar Tabela"
+        else:
+            dropdown_servico.visible = True
+            input_servico_manual.visible = False
+            dropdown_servico.value = None
+            input_valor_un.value = ""
+            txt_botao_modo.value = "Digitar Manual"
+            
+        page.update()
+
+    btn_alternar_modo = ft.Container(
+        content=txt_botao_modo,
+        padding=8,
+        on_click=alternar_modo_servico,
+        alignment=ft.alignment.center
+    )
 
     def ao_mudar_servico(e):
         txt_avisos.value = ""
         servico_selecionado = dropdown_servico.value
-        
-        if servico_selecionado == "Outro (Digitar manualmente)":
-            input_servico_manual.visible = True
-            input_servico_manual.value = ""
-            input_valor_un.value = ""
-        else:
-            input_servico_manual.visible = False
-            input_servico_manual.value = ""
-            if servico_selecionado in tabela_precos:
-                preco = tabela_precos[servico_selecionado]
-                input_valor_un.value = f"{preco:.2f}".replace(".", ",")
-                
+        if servico_selecionado in tabela_precos:
+            preco = tabela_precos[servico_selecionado]
+            input_valor_un.value = f"{preco:.2f}".replace(".", ",")
         page.update()
 
     dropdown_servico.on_change = ao_mudar_servico
+    
+    input_qtd = ft.TextField(label="Qtd", width=75, value="1", keyboard_type=ft.KeyboardType.NUMBER, cursor_color=cor_destaque, **estilo_base)
+    input_valor_un = ft.TextField(label="Valor Un. (R$)", width=120, keyboard_type=ft.KeyboardType.NUMBER, cursor_color=cor_destaque, **estilo_base)
 
     txt_valor_total = ft.Text("R$ 0,00", size=24, weight=ft.FontWeight.W_800, color=cor_texto_principal)
     lista_servicos = ft.ListView(height=160, spacing=5)
@@ -161,14 +181,13 @@ def main(page: ft.Page):
         page.update()
 
     def adicionar_servico_click(e):
-        # Se a opção escolhida for a manual, pega o que foi digitado no campo de texto
-        if dropdown_servico.value == "Outro (Digitar manualmente)":
+        if usando_manual:
             descricao_final = input_servico_manual.value
         else:
             descricao_final = dropdown_servico.value
 
         if not descricao_final:
-            txt_avisos.value = "Selecione um serviço ou digite o nome dele!"
+            txt_avisos.value = "Selecione ou digite um serviço!"
             txt_avisos.color = ft.Colors.RED_600
             page.update()
             return
@@ -205,15 +224,17 @@ def main(page: ft.Page):
 
             atualizar_total()
 
-            dropdown_servico.value = None
-            input_servico_manual.visible = False
-            input_servico_manual.value = ""
+            if usando_manual:
+                input_servico_manual.value = ""
+            else:
+                dropdown_servico.value = None
+                
             input_qtd.value = "1"
             input_valor_un.value = ""
             txt_avisos.value = ""
             page.update()
         except ValueError:
-            txt_avisos.value = "Verifique se a quantidade e o valor são válidos!"
+            txt_avisos.value = "Verifique a quantidade e o valor inseridos!"
             txt_avisos.color = ft.Colors.RED_600
             page.update()
 
@@ -340,9 +361,13 @@ def main(page: ft.Page):
             input_cliente, input_endereco,
             ft.Divider(height=20, color=ft.Colors.GREY_200),
 
-            ft.Text("ITENS DO ORÇAMENTO", size=11, weight=ft.FontWeight.BOLD, color=cor_texto_principal),
-            ft.Row([dropdown_servico]),
-            input_servico_manual, # Campo de digitação manual posicionado logo abaixo do dropdown
+            ft.Row([
+                ft.Text("ITENS DO ORÇAMENTO", size=11, weight=ft.FontWeight.BOLD, color=cor_texto_principal),
+                btn_alternar_modo # Botão para alternar entre tabela e digitação livre
+            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+
+            ft.Row([dropdown_servico, input_servico_manual]),
+            
             ft.Row([input_qtd, input_valor_un, btn_adicionar], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
 
             ft.Container(height=5),
@@ -350,7 +375,7 @@ def main(page: ft.Page):
             ft.Divider(height=20, color=ft.Colors.GREY_200),
 
             ft.Row([
-                ft.Text("TOTAL PARCIAL", size=11, weight=ft.FontWeight.BOLD, color=ft.Colors.GREY_500),
+                ft.Text("TOTAL PARCIAL", size=11, weight=ft.FontWeight.BOLD, color=ft.colors.GREY_500),
                 txt_valor_total
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             ft.Divider(height=15, color=ft.Colors.TRANSPARENT),

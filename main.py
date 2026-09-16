@@ -174,7 +174,6 @@ def main(page: ft.Page):
 
             container_linha = ft.Container(padding=8, bgcolor="#F8FAFC", border_radius=8)
 
-            # Botão de remover feito com Container (à prova de falhas)
             btn_remover = ft.Container(
                 content=ft.Icon(ft.Icons.DELETE_OUTLINE, color=ft.Colors.RED_400, size=20),
                 padding=5,
@@ -205,7 +204,6 @@ def main(page: ft.Page):
             txt_avisos.color = ft.Colors.RED_600
             page.update()
 
-    # Botão Adicionar feito com Container (à prova de falhas)
     btn_adicionar = ft.Container(
         content=ft.Row([ft.Text("Adicionar", color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD)], alignment=ft.MainAxisAlignment.CENTER),
         bgcolor=cor_texto_principal,
@@ -288,7 +286,6 @@ def main(page: ft.Page):
         txt_avisos.color = ft.Colors.GREEN_700
         page.update()
 
-    # Botão de Gerar PDF feito com Container (à prova de falhas)
     btn_gerar_pdf = ft.Container(
         content=ft.Row(
             [ft.Icon(ft.Icons.PICTURE_AS_PDF, color=ft.Colors.WHITE), ft.Text("Finalizar e Gerar PDF", color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD)],
@@ -339,7 +336,7 @@ def main(page: ft.Page):
         bgcolor=cor_card,
         padding=18,
         border_radius=16,
-        shadow=ft.BoxShadow(spread_radius=0, blur_radius=10, color=ft.Colors.BLACK12)
+        shadow=ft.BoxShadow(spread_radius=0, blur_radius=10, color=ft.Colors.BLACK_12)
     )
 
     page.add(
